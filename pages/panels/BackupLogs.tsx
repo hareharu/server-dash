@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Collapse, List } from 'antd';
+import React from 'react';
+import useSWR from 'swr'
+import { Collapse, List, Empty } from 'antd';
+import fetcher from '../utils/fetcher';
 
 const { Panel } = Collapse;
 
@@ -18,33 +20,9 @@ interface DataType {
 }
 
 const BuckupLogs = () => {
-    const [loading, setLoading] = useState(false);
-    const [data, setData] = useState<DataType[]>([]);
+    const { data } = useSWR<DataType[]>('http://' + process.env.NEXT_PUBLIC_BACKSERVER + '/logs.php', fetcher);
 
-    const loadData = () => {
-        if (loading) {
-            return;
-        }
-        setLoading(true);
-        fetch('http://' + process.env.NEXT_PUBLIC_BACKSERVER + '/logs.php', {
-            credentials: 'include',
-            mode: 'cors',
-            method: 'GET'
-        })
-            .then(response => response.json())
-            .then(json => {
-                setData([...data, ...json]);
-                setLoading(false);
-            })
-            .catch(() => {
-                setLoading(false);
-            });
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
+    if (!data) return (<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />);
     return (
         <Collapse accordion>
             {data.map(log => <Panel

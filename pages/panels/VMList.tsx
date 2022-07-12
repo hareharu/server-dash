@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import useSWR from 'swr'
 import { List } from 'antd';
+import fetcher from '../utils/fetcher';
 
 interface DataType {
     name_label: string;
@@ -13,37 +15,13 @@ interface DataType {
 }
 
 const VMList = () => {
-    const [loading, setLoading] = useState(false);
-    const [data, setData] = useState<DataType[]>([]);
-
-    const loadData = () => {
-        if (loading) {
-            return;
-        }
-        setLoading(true);
-        fetch('http://' + process.env.NEXT_PUBLIC_BACKSERVER + '/vms.php', {
-            credentials: 'include',
-            mode: 'cors',
-            method: 'GET'
-        })
-            .then(response => response.json())
-            .then(json => {
-                setData([...data, ...json]);
-                setLoading(false);
-            })
-            .catch(() => {
-                setLoading(false);
-            });
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
+    const { data } = useSWR<DataType[]>('http://' + process.env.NEXT_PUBLIC_BACKSERVER + '/vms.php', fetcher);
 
     return (
         <List
             style={{ background: 'white' }}
             dataSource={data}
+            loading={!data}
             bordered
             renderItem={item => (
                 <List.Item
